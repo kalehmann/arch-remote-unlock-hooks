@@ -1,0 +1,193 @@
+#! /bin/bash
+
+GATEWAY_IP="${GATEWAY_IP:-192.168.1.1}"
+KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE:-~/.ssh/known_hosts}"
+LAN_INTERFACE="${LAN_INTERFACE:-eth0}"
+PREFIX="${PREFIX:-/etc/initcpio}"
+REMOTE_ADDRESS="${REMOTE_ADDRESS}"
+REMOTE_USER="${REMOT_USER:-root}"
+SERVER="${SERVER}"
+SSH_KEY="${SSH_KEY:-~/.ssh/id_rsa}"
+TEMPLATES=(
+    "hooks/reversessh"
+    "install/reversessh"
+    "install/sshshell"
+)
+
+help() {
+    echo "Configure remote unlock hooks"
+    echo "The following options are available:"
+    echo "  -a | --address    ADDRESS   The remote address (including port) of"
+    echo "                              the tunnel."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable REMOTE_ADDRESS."
+    echo "  -g | --gateway-ip ADDRESS   The IP address of the gateway in the"
+    echo "                              LAN of the machine. The default is"
+    echo "                              192.168.1.1."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable GATWAY_IP."
+    echo "  -h | --help                 show this information."
+    echo "  -k | --key        KEY FILE  the ssh key for the remote server. The"
+    echo "                              default is ~/.ssh/id_rsa."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable SSH_KEY."
+    echo "       --know-hosts FILE      the known hosts file including the"
+    echo "                              servers public key. The defaul is"
+    echo "                              ~/.ssh/known_hosts."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable KNOWN_HOSTS_FILE."
+    echo "  -l | --lan-if     INTERFACE the network interface of the"
+    echo "                              machine. The default is eth0."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable LAN_INTERFACE."
+    echo "  -p | --prefix     PREFIX    the path to the initcpio configuration"
+    echo "                              directory. The default is"
+    echo "                              /etc/initcpio."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable PREFIX."
+    echo "  -s | --server     ADDRESS   the address of the proxy server."
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable SERVER."
+    echo "  -u | --user       NAME      the name of the user on the proxy"
+    echo "                              This parameter can be set with the"
+    echo "                              environment variable REMOTE_USER."
+    echo "                              server. The default user is root."
+    exit 0
+}
+
+install_makefile() {
+    
+    cat << EOF > Makefile
+HOOK_FILES = \
+ hooks/reversessh
+
+INSTALL_FILES = \
+ install/reversessh \
+ install/sshshell
+
+build: \$(HOOK_FILES) \$(INSTALL_FILES)
+
+\$(INSTALL_FILES): install/%: templates/install/%
+	mkdir -p install
+	GATEWAY_IP="${GATEWAY_IP}" \
+ KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE}" \
+ LAN_INTERFACE=${LAN_INTERFACE} \
+ PREFIX="${PREFIX}" \
+ REMOTE_ADDRESS="${REMOTE_ADDRESS}" \
+ REMOTE_USER="${REMOTE_USER}" \
+ SERVER="${SERVER}" \
+ SSH_KEY="${SSH_KEY}" \
+ envsubst '\$\$GATEWAY_IP:\$\$KNOWN_HOSTS_FILE:\$\$LAN_INTERFACE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@ 
+
+\$(HOOK_FILES): hooks/%: templates/hooks/%
+	mkdir -p hooks
+	GATEWAY_IP="${GATEWAY_IP}" \
+ KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE}" \
+ LAN_INTERFACE=${LAN_INTERFACE} \
+ PREFIX="${PREFIX}" \
+ REMOTE_ADDRESS="${REMOTE_ADDRESS}" \
+ REMOTE_USER="${REMOTE_USER}" \
+ SERVER="${SERVER}" \
+ SSH_KEY="${SSH_KEY}" \
+ envsubst '\$\$GATEWAY_IP:\$\$KNOWN_HOSTS_FILE:\$\$LAN_INTERFACE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@ 
+
+
+clean:
+	rm -rf \$(HOOK_FILES) \$(INSTALL_FILES)
+
+.PHONY: clean
+EOF
+}
+
+main() {
+    install_makefile
+}
+
+usage() {
+    echo "Usage:"
+    echo "${0} [...OPTION]"
+    echo "Call ${0} --help for a list of available options."
+    exit 1
+}
+
+validate() {
+    # Validate that all variables with no defaults are set.
+    declare -a UNSET_PARAMETERS
+    
+    if [[ -z "${REMOTE_ADDRESS}" ]]; then
+        UNSET_PARAMETERS+=("--address")
+    fi
+
+    if [[ -z "${SERVER}" ]]; then
+        UNSET_PARAMETERS+=("--server")
+    fi
+    
+    if [[ ${#UNSET_PARAMETERS[@]} -eq 0 ]]; then
+        return
+    fi
+
+    echo "The following parameters are required: ${UNSET_PARAMETERS[*]}"
+    echo "Call ${0} --help for more information"
+    exit 1
+}
+
+while [[ ${#} -gt 0 ]]
+do
+    option="${1}"
+    case ${option} in
+        -a|--address)
+            REMOTE_ADDRESS="${2}"
+            shift
+            shift
+            ;;
+        -g|--gateway-ip)
+            GATEWAY_IP="${2}"
+            shift
+            shift
+            ;;
+        -h|--help)
+            help
+            ;;
+        -i|--ip)
+            IP="${2}"
+            shift
+            shift
+            ;;
+        -k|--key)
+            SSH_KEY="${2}"
+            shift
+            shift
+            ;;
+        ---known-hosts)
+            KNOWN_HOSTS_FILE="${2}"
+            shift
+            shift
+            ;;
+        -l|--lan-if)
+            LAN_INTERFACE="${2}"
+            shift
+            shift
+            ;;
+        -p|--prefix)
+            PREFIX="${2}"
+            shift
+            shift
+            ;;
+        -s|--server)
+            SERVER="${2}"
+            shift
+            shift
+            ;;
+        -u|--user)
+            USER="${2}"
+            shift
+            shift
+            ;;
+        *)
+            usage ${0}
+            ;;
+    esac
+done
+
+validate ${0}
+main
