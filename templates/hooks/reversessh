@@ -1,0 +1,16 @@
+#! /bin/bash
+
+PIDFILE=/var/run/reversessh.pid
+
+run_hook() {
+	route add default gw ${GATEWAY_IP} ${LAN_INTERFACE}
+	sleep 5
+	dbclient -N -i .ssh/$(basename ${SSH_KEY}) -R ${REMOTE_ADDRESS}:127.0.0.1:22 ${REMOTE_USER}@${SERVER}&
+	echo $! > "${PIDFILE}"
+}
+
+run_cleanuphook() {
+	if [ -f "${PIDFILE}" ]; then
+		kill $(cat "${PIDFILE}")
+	fi
+}
