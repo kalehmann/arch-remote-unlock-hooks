@@ -31,7 +31,7 @@ help() {
     echo "                              default is ~/.ssh/id_rsa."
     echo "                              This parameter can be set with the"
     echo "                              environment variable SSH_KEY."
-    echo "       --know-hosts FILE      the known hosts file including the"
+    echo "       --known-hosts FILE     the known hosts file including the"
     echo "                              servers public key. The defaul is"
     echo "                              ~/.ssh/known_hosts."
     echo "                              This parameter can be set with the"
@@ -158,7 +158,7 @@ do
             shift
             shift
             ;;
-        ---known-hosts)
+        --known-hosts)
             KNOWN_HOSTS_FILE="${2}"
             shift
             shift
