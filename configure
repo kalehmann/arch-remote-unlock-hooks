@@ -200,10 +200,10 @@ do
             ;;
         *)
             echo "Unknown option ${option}"
-            usage ${0}
+            usage "${0}"
             ;;
     esac
 done
 
-validate ${0}
+validate "${0}"
 main
