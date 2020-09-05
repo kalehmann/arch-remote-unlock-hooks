@@ -20,16 +20,31 @@
 #    along with the arch-remote-unlock-hooks.  If not, see
 #    <https://www.gnu.org/licenses/>.
 
+# This hook sets up a reverse SSH tunnel from a remote server to the local
+# SSH daemon using dropbear.
+
+# File to save the process id of the reverse tunnel.
 PIDFILE=/var/run/reversessh.pid
 
 run_hook() {
+        # Set the default gateway.
 	route add default gw ${GATEWAY_IP} ${LAN_INTERFACE}
 	sleep 5
         # It seems like $HOME is not always set correctly in the initrd.
         # Made sure it points to the right location, so that dropbear is able
         # to find the known_hosts file inside the the ~/.ssh directory.
         export HOME=/root
-	dbclient -N -i /root/.ssh/$(basename ${SSH_KEY}) -R ${REMOTE_ADDRESS}:127.0.0.1:22 ${REMOTE_USER}@${SERVER}&
+        # Call dropbear to establish a reverse SSH proxy.
+        # This call utilizes the following options and parameters:
+        #  -N  Do not open a shell
+        #  -i  The identity file (private key)
+        #  -R  Establish a reverse tunnel
+        #      RemoteListenAddr:RemotePort:LocalListenAddr:LocalPort
+	dbclient \
+            -N \
+            -i /root/.ssh/$(basename ${SSH_KEY}) \
+            -R ${REMOTE_ADDRESS}:127.0.0.1:22 \
+            ${REMOTE_USER}@${SERVER} &
 	echo $! > "${PIDFILE}"
 }
 
