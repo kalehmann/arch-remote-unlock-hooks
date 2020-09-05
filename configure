@@ -35,9 +35,27 @@ TEMPLATES=(
     "install/sshshell"
 )
 
+####
+# Prints out a detailed help for the configure script.
+#
+# This function prints a short description of the arch-remote-unlock-hooks
+# and a detailed list of all parameters.
+#
+# Globals:
+#  None
+# Arguments:
+#  None
+# Returns:
+#  None
+###
 help() {
-    echo "Configure remote unlock hooks"
-    echo "The following options are available:"
+    echo "Configure the arch remote unlock hooks."
+    echo ""
+    echo "The arch remote unlock hooks allow you to unlock the encrypted drive"
+    echo "of your arch linux server that is not reachable from the internet via"
+    echo "a SSH reverse proxy to another server."
+    echo ""
+    echo "The following parameters are available:"
     echo "  -a | --address    ADDRESS   The remote address (including port) of"
     echo "                              the tunnel."
     echo "                              This parameter can be set with the"
@@ -73,9 +91,32 @@ help() {
     echo "                              This parameter can be set with the"
     echo "                              environment variable REMOTE_USER."
     echo "                              server. The default user is root."
+    echo ""
+    echo "At least the parameters --address and --server are required."
     exit 0
 }
 
+####
+# Create the Makefile for the arch-remote-unlock-hooks.
+#
+# The remote unlock hooks are available as templates in this directory. This
+# function generates a Makefile, that replaces all variables in these templates
+# with the paramters collected by this configure script.
+#
+# Globals:
+#  GATEWAY_IP
+#  KNOWN_HOSTS_FILE
+#  LAN_INTERFACE
+#  PREFIX
+#  REMOTE_ADDRESS
+#  REMOTE_USER
+#  SERVER
+#  SSH_KEY
+# Arguments:
+#  None
+# Returns:
+#  None
+###
 install_makefile() {
     cat << EOF > Makefile
 define POST_INSTALL_TEXT
@@ -135,10 +176,25 @@ install: copy_files
 EOF
 }
 
+####
+# Create the Makefile with the parameters collected by this script.
+###
 main() {
     install_makefile
 }
 
+####
+# Prints three lines to give a quick intro into the usage of this script.
+#
+# This function does not return and always exits with a failure.
+#
+# Globals:
+#  None
+# Arguments:
+#  The name of this script.
+# Returns
+#  None
+###
 usage() {
     echo "Usage:"
     echo "${0} [...OPTION]"
@@ -146,6 +202,24 @@ usage() {
     exit 1
 }
 
+####
+# This function verifies, that all required parameters were set.
+#
+# The parameters --address and --server can under no circumstances be guessed
+# by this script. Therefore these two parameters are required to be set by the
+# user.
+#
+# If these two parameters were not set, the function prints a short error
+# message and then exits with a failure.
+#
+# Globals:
+#  REMOTE_ADDRESS
+#  SERVER
+# Arguments:
+#  The name of this script.
+# Returns:
+#  None
+###
 validate() {
     # Validate that all variables with no defaults are set.
     declare -a UNSET_PARAMETERS
@@ -167,6 +241,7 @@ validate() {
     exit 1
 }
 
+# Parse the parameters.
 while [[ ${#} -gt 0 ]]
 do
     option="${1}"
