@@ -29,6 +29,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 PS1="\${GREEN}\u\${NC}@\${RED}initramfs\${NC}:\${GREEN}\W ${NC}# "
 alias ll='ls -l'
+alias unlock='cryptsetup_shell'
 EOF
         # Create the a new shell for the root user, that utilizes the previous
         # creates provile and gives the user a short description how to unlock
@@ -41,7 +42,7 @@ RED='\033[0;31m'
 printf "${RED}"
 
 echo 'Welcome to the initramfs'
-echo 'You may want to run `cryptsetup_shell` to unlock the disk'
+echo 'You may want to run `unlock` to unlock the disk'
 echo 'Type `exit` to resume the boot process'
 
 printf "\n${NC}"
