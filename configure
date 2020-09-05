@@ -184,7 +184,7 @@ do
             shift
             ;;
         -u|--user)
-            USER="${2}"
+            REMOTE_USER="${2}"
             shift
             shift
             ;;
