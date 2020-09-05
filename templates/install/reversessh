@@ -2,9 +2,9 @@
 
 build() {
 	add_binary dbclient
-	mkdir -p "${BUILDROOT}"/.ssh
-	cat "${KNOWN_HOSTS_FILE}" >> "${BUILDROOT}"/.ssh/known_hosts
-	cat ${SSH_KEY} > "${BUILDROOT}"/.ssh/$(basename ${SSH_KEY})
-	cat ${SSH_KEY}.pub > "${BUILDROOT}"/.ssh/$(basename ${SSH_KEY}).pub
+	mkdir -p "${BUILDROOT}"/root/.ssh
+	cat "${KNOWN_HOSTS_FILE}" >> "${BUILDROOT}"/root/.ssh/known_hosts
+	cat ${SSH_KEY} > "${BUILDROOT}"/root/.ssh/$(basename ${SSH_KEY})
+	cat ${SSH_KEY}.pub > "${BUILDROOT}"/root/.ssh/$(basename ${SSH_KEY}).pub
 	add_runscript
 }
