@@ -23,7 +23,10 @@
 build() {
 	add_binary dbclient
 	mkdir -p "${BUILDROOT}"/root/.ssh
+        # Add the known_hosts file with the public key of the remote server
 	cat "${KNOWN_HOSTS_FILE}" >> "${BUILDROOT}"/root/.ssh/known_hosts
+        # Add the identity file (SSH key) used for the connection to the remote
+        # server.
 	cat ${SSH_KEY} > "${BUILDROOT}"/root/.ssh/$(basename ${SSH_KEY})
 	cat ${SSH_KEY}.pub > "${BUILDROOT}"/root/.ssh/$(basename ${SSH_KEY}).pub
 	add_runscript

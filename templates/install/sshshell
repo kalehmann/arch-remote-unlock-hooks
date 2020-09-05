@@ -21,8 +21,8 @@
 #    <https://www.gnu.org/licenses/>.
 
 build() {
-	echo 'root:x:0:0:root:/root:/bin/sshshell' > "${BUILDROOT}"/etc/passwd
-	echo '/bin/sshshell' > "${BUILDROOT}"/etc/shells
+        # Configure the prompt for the root user to display the user name in
+        # green '@' the 'initramfs' and set an 'll' as an alias to 'ls -l'.
 	cat <<'EOF' > "${BUILDROOT}"/root/.profile
 NC='\033[0m'
 RED='\033[0;31m'
@@ -30,6 +30,9 @@ GREEN='\033[0;32m'
 PS1="\${GREEN}\u\${NC}@\${RED}initramfs\${NC}:\${GREEN}\W ${NC}# "
 alias ll='ls -l'
 EOF
+        # Create the a new shell for the root user, that utilizes the previous
+        # creates provile and gives the user a short description how to unlock
+        # the disk.
 	cat <<'EOF' > "${BUILDROOT}"/bin/sshshell
 #! /bin/sh
 NC='\033[0m'
@@ -46,4 +49,7 @@ printf "\n${NC}"
 ENV=/root/.profile sh
 EOF
 	chmod +x "${BUILDROOT}"/bin/sshshell
+        # Set the new shell as default for the root user.
+        echo 'root:x:0:0:root:/root:/bin/sshshell' > "${BUILDROOT}"/etc/passwd
+	echo '/bin/sshshell' > "${BUILDROOT}"/etc/shells
 }
