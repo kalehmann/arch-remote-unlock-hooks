@@ -5,6 +5,10 @@ PIDFILE=/var/run/reversessh.pid
 run_hook() {
 	route add default gw ${GATEWAY_IP} ${LAN_INTERFACE}
 	sleep 5
+        # It seems like $HOME is not always set correctly in the initrd.
+        # Made sure it points to the right location, so that dropbear is able
+        # to find the known_hosts file inside the the ~/.ssh directory.
+        export HOME=/root
 	dbclient -N -i /root/.ssh/$(basename ${SSH_KEY}) -R ${REMOTE_ADDRESS}:127.0.0.1:22 ${REMOTE_USER}@${SERVER}&
 	echo $! > "${PIDFILE}"
 }
