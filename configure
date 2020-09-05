@@ -67,6 +67,11 @@ INSTALL_FILES = \
 
 build: \$(HOOK_FILES) \$(INSTALL_FILES)
 
+install: build
+	cp install/reversessh ${PREFIX}/install/
+	cp install/sshshell   ${PREFIX}/install/
+	cp hooks/reversessh   ${PREFIX}/hooks/
+
 \$(INSTALL_FILES): install/%: templates/install/%
 	mkdir -p install
 	GATEWAY_IP="${GATEWAY_IP}" \
@@ -95,7 +100,7 @@ build: \$(HOOK_FILES) \$(INSTALL_FILES)
 clean:
 	rm -rf \$(HOOK_FILES) \$(INSTALL_FILES)
 
-.PHONY: clean
+.PHONY: build clean install
 EOF
 }
 
