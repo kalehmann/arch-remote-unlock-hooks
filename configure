@@ -56,8 +56,16 @@ help() {
 }
 
 install_makefile() {
-    
     cat << EOF > Makefile
+define POST_INSTALL_TEXT
+       $(tput setaf 2)
+       All files were installed.
+       You now need to manually run \`mkinitcpio -p linux\` to regenerate your initial ramdisk.
+
+       Note that you possibly need to adapt this command to your system!
+       $(tput sgr0)
+endef
+
 HOOK_FILES = \
  hooks/reversessh
 
@@ -67,10 +75,16 @@ INSTALL_FILES = \
 
 build: \$(HOOK_FILES) \$(INSTALL_FILES)
 
-install: build
+clean:
+	rm -rf \$(HOOK_FILES) \$(INSTALL_FILES)
+
+copy_files: build
 	cp install/reversessh ${PREFIX}/install/
 	cp install/sshshell   ${PREFIX}/install/
 	cp hooks/reversessh   ${PREFIX}/hooks/
+
+install: copy_files
+	\$(info \$(POST_INSTALL_TEXT))
 
 \$(INSTALL_FILES): install/%: templates/install/%
 	mkdir -p install
@@ -96,11 +110,7 @@ install: build
  SSH_KEY="${SSH_KEY}" \
  envsubst '\$\$GATEWAY_IP:\$\$KNOWN_HOSTS_FILE:\$\$LAN_INTERFACE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@ 
 
-
-clean:
-	rm -rf \$(HOOK_FILES) \$(INSTALL_FILES)
-
-.PHONY: build clean install
+.PHONY: build clean copy_files install
 EOF
 }
 
