@@ -123,9 +123,17 @@ install_makefile() {
 define POST_INSTALL_TEXT
        $(tput setaf 2)
        All files were installed.
-       You now need to manually run \`mkinitcpio -p linux\` to regenerate your initial ramdisk.
 
-       Note that you possibly need to adapt this command to your system!
+       You know need to complete two manual steps:
+
+       1) Edit the file \`/etc/mkinitcpio.conf\` and configure mkinitcpio to
+        include the arch-remote-unlock-hooks. Find the line
+        \`HOOKS=(...)\`
+        and add \`reversessh sshshell\` after \`dropbear\`.
+
+       2) Run \`mkinitcpio -p linux\` manually to regenerate your initial
+        ramdisk. Note that you possibly need to adapt this command to
+        your system!
        $(tput sgr0)
 endef
 
