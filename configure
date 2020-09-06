@@ -21,7 +21,6 @@
 #    <https://www.gnu.org/licenses/>.
 
 
-GATEWAY_IP="${GATEWAY_IP:-192.168.1.1}"
 KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE:-~/.ssh/known_hosts}"
 LAN_INTERFACE="${LAN_INTERFACE:-eth0}"
 PREFIX="${PREFIX:-/etc/initcpio}"
@@ -60,11 +59,6 @@ help() {
     echo "                              the tunnel."
     echo "                              This parameter can be set with the"
     echo "                              environment variable REMOTE_ADDRESS."
-    echo "  -g | --gateway-ip ADDRESS   The IP address of the gateway in the"
-    echo "                              LAN of the machine. The default is"
-    echo "                              192.168.1.1."
-    echo "                              This parameter can be set with the"
-    echo "                              environment variable GATWAY_IP."
     echo "  -h | --help                 show this information."
     echo "  -k | --key        KEY FILE  the ssh key for the remote server. The"
     echo "                              default is ~/.ssh/id_rsa."
@@ -159,27 +153,23 @@ install: copy_files
 
 \$(INSTALL_FILES): install/%: templates/install/%
 	mkdir -p install
-	GATEWAY_IP="${GATEWAY_IP}" \
- KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE}" \
- LAN_INTERFACE=${LAN_INTERFACE} \
+	KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE}" \
  PREFIX="${PREFIX}" \
  REMOTE_ADDRESS="${REMOTE_ADDRESS}" \
  REMOTE_USER="${REMOTE_USER}" \
  SERVER="${SERVER}" \
  SSH_KEY="${SSH_KEY}" \
- envsubst '\$\$GATEWAY_IP:\$\$KNOWN_HOSTS_FILE:\$\$LAN_INTERFACE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@ 
+ envsubst '\$\$KNOWN_HOSTS_FILE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@
 
 \$(HOOK_FILES): hooks/%: templates/hooks/%
 	mkdir -p hooks
-	GATEWAY_IP="${GATEWAY_IP}" \
- KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE}" \
- LAN_INTERFACE=${LAN_INTERFACE} \
+	KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE}" \
  PREFIX="${PREFIX}" \
  REMOTE_ADDRESS="${REMOTE_ADDRESS}" \
  REMOTE_USER="${REMOTE_USER}" \
  SERVER="${SERVER}" \
  SSH_KEY="${SSH_KEY}" \
- envsubst '\$\$GATEWAY_IP:\$\$KNOWN_HOSTS_FILE:\$\$LAN_INTERFACE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@ 
+ envsubst '\$\$KNOWN_HOSTS_FILE:\$\$PREFIX:\$\$SERVER:\$\$SSH_KEY:\$\$REMOTE_ADDRESS:\$\$REMOTE_USER' < \$< > \$@
 
 .PHONY: build clean copy_files install
 EOF
@@ -257,11 +247,6 @@ do
     case ${option} in
         -a|--address)
             REMOTE_ADDRESS="${2}"
-            shift
-            shift
-            ;;
-        -g|--gateway-ip)
-            GATEWAY_IP="${2}"
             shift
             shift
             ;;
